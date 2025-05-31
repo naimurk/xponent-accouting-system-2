@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  type      String   // Asset, Liability, Equity, Expense, Revenue
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  entries   JournalEntryLine[]
+}
+
+model JournalEntry {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  date      DateTime
+  memo      String?
+  lines     JournalEntryLine[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model JournalEntryLine {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  journalEntryId String       @db.ObjectId
+  account        Account      @relation(fields: [accountId], references: [id])
+  accountId      String       @db.ObjectId
+  debit          Float        @default(0)
+  credit         Float        @default(0)
+}
